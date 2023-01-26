@@ -1,9 +1,9 @@
 import { Router } from "express"
 import { validarUsuario, validarSenha } from "./middlewares.js";
-import { autenticarUsuario } from "../auth.js"
+import { autenticarUsuario } from "../../auth.js"
 import { ControllerUsuario } from "./controller.js";
 import multer from "multer"
-import { multerConfig } from "../multer.js"
+import { multerConfig } from "../../multer.js"
 
 
 const uploadMulter = multer({

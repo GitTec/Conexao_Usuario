@@ -1,4 +1,4 @@
-import { conexao } from "../index.js"
+import { conexao } from "../../index.js"
 
 function validarCliente(req, res, next) {
     const { nome, cpf, telefone, endereco } = req.body

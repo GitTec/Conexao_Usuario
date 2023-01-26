@@ -1,4 +1,4 @@
-import { conexao } from "../index.js";
+import { conexao } from "../../index.js";
 
 class ControllerDivida {
 

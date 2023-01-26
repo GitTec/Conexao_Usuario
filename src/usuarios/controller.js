@@ -1,6 +1,6 @@
 import { hashSync } from "bcrypt";
 import jwt from "jsonwebtoken";
-import { conexao } from "../index.js";
+import { conexao } from "../../index.js";
 
 class ControllerUsuario {
 
@@ -70,27 +70,29 @@ class ControllerUsuario {
             (erro, resultado, campos) => {
                 if (erro) {
                     console.log(erro)
-                    return res.status(500).json("Erro ao alterar senha!!")
+                    return res.status(500).json("Erro ao realizar login!!")
                 }
                 if (resultado.length === 0) {
                     return res.status(401).json("Email ou senha inválidos!!")
                 }
-                const usuario = resultado[0]
+                const usuario = resultado[0]    //usuario na posicao 0 do array
 
-                if (!compareSync(senha, usuario.senha)) {
+                if (!compareSync(senha, usuario.senha)) {   //comparacao de senha digitada com senha do usuario
                     return res.status(401).json("Email ou senha inválidos!!")
                 }
-                const token = jwt.sign({
+                //A partir daqui a senha e email estao válidos
+                const token = jwt.sign({    //sign: assinatura
+                    //Aqui não são obrigatorias, coisas que quero guardar no body no token
                     email: usuario.email,
                     nome: usuario.nome,
                     id: usuario.id
-                }, process.env.JWT_KEY, {
-                    subject: usuario.email,
-                    expiresIn: 30
+                }, process.env.JWT_KEY, {   //2° parametro, assinar
+                    subject: usuario.email, //3°parametro, predefinidos do jwt mas nao sao obrigatorias
+                    expiresIn: 180
                 })
                 delete usuario.senha    //Aqui é pra senha não ficar aparecendo, mesmo que de forma criptografada
 
-                return res.json({
+                return res.json({   //Aqui pra saber quem fez o login
                     token,
                     usuario
                 })

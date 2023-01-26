@@ -1,12 +1,14 @@
 import express from "express"
 import mysql from "mysql2"
 import env from "dotenv"
-import { rotasUsuario } from "./usuarios/rotas.js"
-import { rotasDivida } from "./dividas/rotas.js"
-import { rotasCliente } from "./clientes/rotas.js"
+import { rotasUsuario } from "./src/usuarios/rotas.js"
+import { rotasDivida } from "./src/dividas/rotas.js"
+import { rotasCliente } from "./src/clientes/rotas.js"
 
 const app = express()
-env.config()    //Ao chamar a configuracao do dotenv as variaveis de ambiente que estao dentro do arquivo .env são adicionadas as variaveis de ambiente do S.O
+env.config()   
+/*Ao chamar a configuracao do dotenv as variaveis de ambiente que estao 
+dentro do arquivo .env são adicionadas as variaveis de ambiente do S.O*/
 
 export const conexao = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -26,7 +28,7 @@ app.use('/dividas', rotasDivida)
 app.use('/clientes', rotasCliente)
 //FIMA DAS ROTAS
 
-app.listen(8000, (erro) => {
+app.listen(8080, (erro) => {
     if (erro) {
         console.log("Ocorreu um erro!!")
     } else {
