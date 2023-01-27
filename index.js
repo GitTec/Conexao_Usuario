@@ -26,7 +26,7 @@ app.use("/uploads", express.static("./uploads"));   //Rota para arquivos estatic
 app.use('/usuarios', rotasUsuario)
 app.use('/dividas', rotasDivida)
 app.use('/clientes', rotasCliente)
-//FIMA DAS ROTAS
+//FIM DAS ROTAS
 
 app.listen(8080, (erro) => {
     if (erro) {

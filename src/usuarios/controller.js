@@ -1,35 +1,43 @@
 import { hashSync } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { conexao } from "../../index.js";
+import { ModelUsuario } from "../usuarios/modelUsuario.js";
 
 class ControllerUsuario {
 
+    constructor() {
+        this.modelUsuarios = new ModelUsuario()
+    }
+
     listar(req, res) {
-        conexao.query("select * from usuario",
-            (erro, resultado, campos) => {
-                if (erro) {
-                    return res.status(500).json("Erro ao buscar usuário!!")
-                } else if (resultado == 0) {
-                    return res.json("Não há usuários cadastrados!!")
-                } else {
-                    return res.json(resultado)
-                }
-            })
+        this.modelUsuarios.listarUsuarios().then((resultado) => {
+            if (resultado == 0) {
+                return res.json("Não há usuários cadastrados!!")
+            } else {
+                return res.json(resultado)
+            }
+        }).catch((error) => {
+            return res.status(500).json("Erro ao listar usuários!!")
+        })
     }
 
     cadastrar(req, res) {   //essa agora é uma rota protegida
         const { nome, email, senha } = req.body
-        const {filename} = req.file
+        const { filename } = req.file
         const senhaCriptografada = hashSync(senha, 8)   //hashSync ela criptografa e devolve um texto
-        conexao.query("insert into usuario (nome, email, senha, ativo, avatar) values (?,?,?,?,?)",
-            [nome, email, senhaCriptografada, 1, filename],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    console.log(erro)
-                    return res.status(500).json("Erro ao cadastrar usuário!!")
-                }
-                return res.json({ status: "Usuário inserido com sucesso!!" })
-            })
+        const resultado = this.model.salvarUsuario(nome, email, senhaCriptografada, filename)
+        res.json({
+            status: "Usuario cadastrado com sucesso!!"
+        })
+        // conexao.query("insert into usuario (nome, email, senha, ativo, avatar) values (?,?,?,?,?)",
+        //     [nome, email, senhaCriptografada, 1, filename],
+        //     (erro, resultado, campos) => {
+        //         if (erro) {
+        //             console.log(erro)
+        //             return res.status(500).json("Erro ao cadastrar usuário!!")
+        //         }
+        //         return res.json({ status: "Usuário inserido com sucesso!!" })
+        //     })
     }
 
     editar(req, res) {

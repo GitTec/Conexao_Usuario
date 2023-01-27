@@ -1,18 +1,22 @@
 import { conexao } from "../../index.js";
+import { ModelCliente } from "./model.js";
 
 class ControllerCliente {
 
+    constructor() {
+        this.modelCLiente = new ModelCliente();
+    }
+
     listar(req, res) {
-        conexao.query("select * from cliente",
-            (erro, resultado, campos) => {
-                if (erro) {
-                    return res.status(500).json("Erro ao buscar clientes!!")
-                } else if (resultado == 0) {
-                    return res.json("Não há clientes cadastrados!!")
-                } else {
-                    return res.json(resultado)
-                }
-            })
+        this.modelCLiente.listarClientes().then((resultado) => {
+            if (resultado == 0) {
+                return res.json("Não há clientes cadastrados!!")
+            } else {
+                return res.json(resultado)
+            }
+        }).catch((error) => {
+            return res.status(500).json("Erro ao listar clientes!!")
+        })
     }
 
     cadastrar(req, res) {
