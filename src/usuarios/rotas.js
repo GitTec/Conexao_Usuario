@@ -16,7 +16,7 @@ const controller = new ControllerUsuario();
 rotasUsuario.get("/", controller.listar)
 rotasUsuario.post("/", uploadMulter.single("avatar"), validarUsuario, controller.cadastrar)
 rotasUsuario.put("/:id", validarUsuario, controller.editar)
-rotasUsuario.patch("/recsenha/:id", validarSenha, controller.recuperarSenha)
+rotasUsuario.patch("/recuperarSenha/:id", validarSenha, controller.alterarSenha)
 rotasUsuario.post("/login", controller.login)
 rotasUsuario.delete("/:id", autenticarUsuario, controller.excluir)
 

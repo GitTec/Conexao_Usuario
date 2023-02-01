@@ -1,14 +1,10 @@
-import { conexao } from "../../index.js";
 import { ModelCliente } from "./model.js";
 
 class ControllerCliente {
 
-    constructor() {
-        this.modelCLiente = new ModelCliente();
-    }
-
     listar(req, res) {
-        this.modelCLiente.listarClientes().then((resultado) => {
+        const modelCLiente = new ModelCliente();
+        modelCLiente.listarClientes().then((resultado) => {
             if (resultado == 0) {
                 return res.json("Não há clientes cadastrados!!")
             } else {
@@ -20,42 +16,34 @@ class ControllerCliente {
     }
 
     cadastrar(req, res) {
+        const modelCLiente = new ModelCliente();
         const { nome, cpf, telefone, endereco, observacoes } = req.body
-        conexao.query("insert into cliente (nome, cpf, telefone, endereco, observacoes) values (?,?,?,?,?)",
-            [nome, cpf, telefone, endereco, observacoes],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    console.log(erro)
-                    return res.status(500).json("Erro ao cadastrar cliente!!")
-                }
-                return res.json({ status: "Cliente cadastrado com sucesso!!" })
-            })
+        modelCLiente.cadastrarClientes(nome, cpf, telefone, endereco, observacoes).then((resultado) => {
+            return res.json("Cliente cadastrado com sucesso!!")
+        }).catch((error) => {
+            return res.status(500).json("Erro ao cadastrar cliente!!")
+        })
     }
 
     editar(req, res) {
+        const modelCLiente = new ModelCliente();
         const { id } = req.params
         const { nome, cpf, telefone, endereco, observacoes } = req.body
-        conexao.query("update cliente set nome=?, cpf=?, telefone=?, endereco=?, observacoes=? where id=?",
-            [nome, cpf, telefone, endereco, observacoes, id],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    return res.status(500).json("Erro ao editar cliente!!")
-                }
-                return res.json({ status: "Cliente editado com sucesso!!" })
-            })
+        modelCLiente.editarClientes(nome, cpf, telefone, endereco, observacoes, id).then((resultado) => {
+            return res.json("Cliente editado com sucesso!!")
+        }).catch((error) => {
+            return res.status(500).json("Erro ao editar cliente!!")
+        })
     }
 
     excluir(req, res) {
+        const modelCLiente = new ModelCliente();
         const { id } = req.params
-        conexao.query("delete from cliente where id = ?",
-            [id],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    console.log(erro)
-                    return res.status(500).json("Erro ao deletar cliente!!")
-                }
-                return res.json({ status: "Cliente deletado com sucesso!!" })
-            })
+        modelCLiente.excluirCLientes(id).then((resultado) => {
+            return res.json("Cliente deletado com sucesso!!")
+        }).catch((error)=>{
+            return res.status(500).json("Erro ao excluir ciente!!")
+        })
     }
 }
 

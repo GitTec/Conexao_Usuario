@@ -1,16 +1,12 @@
-import { hashSync } from "bcrypt";
+import { compareSync, hashSync } from "bcrypt";
 import jwt from "jsonwebtoken";
-import { conexao } from "../../index.js";
 import { ModelUsuario } from "../usuarios/modelUsuario.js";
 
 class ControllerUsuario {
 
-    constructor() {
-        this.modelUsuarios = new ModelUsuario()
-    }
-
     listar(req, res) {
-        this.modelUsuarios.listarUsuarios().then((resultado) => {
+        const modelUsuarios = new ModelUsuario()
+        modelUsuarios.listarUsuarios().then((resultado) => {
             if (resultado == 0) {
                 return res.json("Não há usuários cadastrados!!")
             } else {
@@ -22,101 +18,83 @@ class ControllerUsuario {
     }
 
     cadastrar(req, res) {   //essa agora é uma rota protegida
+        const modelUsuarios = new ModelUsuario()
         const { nome, email, senha } = req.body
-        const { filename } = req.file
+        const filename = req.file?.filename
         const senhaCriptografada = hashSync(senha, 8)   //hashSync ela criptografa e devolve um texto
-        const resultado = this.model.salvarUsuario(nome, email, senhaCriptografada, filename)
-        res.json({
-            status: "Usuario cadastrado com sucesso!!"
+        modelUsuarios.cadastrarUsuario(nome, email, senhaCriptografada, filename).then((resultado) => {//Não precisa ser os mesmos nomes
+            return res.json("Usuário cadastrado com sucesso!!")
+        }).catch((error) => {
+            return res.status(500).json("Erro ao cadastrar usuário!!")
         })
-        // conexao.query("insert into usuario (nome, email, senha, ativo, avatar) values (?,?,?,?,?)",
-        //     [nome, email, senhaCriptografada, 1, filename],
-        //     (erro, resultado, campos) => {
-        //         if (erro) {
-        //             console.log(erro)
-        //             return res.status(500).json("Erro ao cadastrar usuário!!")
-        //         }
-        //         return res.json({ status: "Usuário inserido com sucesso!!" })
-        //     })
     }
 
     editar(req, res) {
+        const modelUsuarios = new ModelUsuario()
         const { id } = req.params
         const { nome, email, senha, ativo } = req.body
+        const filename = req.file?.filename
         const senhaCriptografada = hashSync(senha, 8)
-        console.log("chegou aqui")
-        conexao.query("update usuario set nome=?, email=?, senha=?, ativo=? where idusuario=?",
-            [nome, email, senhaCriptografada, ativo, id],
-            (erro, resultado, campos) => {
-                console.log(erro)
-                if (erro) {
-                    return res.status(500).json("Erro ao editar usuário!!")
-                }
-                return res.json({ status: "Usuário editado com sucesso!!" })
-            })
+        modelUsuarios.editarUsuario(nome, email, senhaCriptografada, ativo, filename, id).then((resultado) => {
+            return res.json("Usuário editado com sucesso!!")
+        }).catch((erro) => {
+            console.log(erro)
+            return res.status(500).json("Erro ao editar usuário!!")
+        })
     }
 
-    recuperarSenha(req, res) {
+    alterarSenha(req, res) {
+        const modelUsuarios = new ModelUsuario()
         const { id } = req.params
         const { senha } = req.body
         const senhaCriptografada = hashSync(senha, 8)
-        conexao.query("update usuario set senha=? where idusuario=?",
-            [senhaCriptografada, id],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    return res.status(500).json("Erro ao alterar senha!!")
-                }
-                console.log(resultado)
-                return res.json({ status: "Senha alterada com sucesso!!" })
-            })
+        modelUsuarios.recuperarSenha(senhaCriptografada, id).then((resultado) => {
+            return res.json("Senha recuperada com sucesso!!")
+        }).catch((erro) => {
+            return res.status(500).json("Erro ao recuperar a senha!!")
+        })
     }
 
     login(req, res) {
         const { email, senha } = req.body
-        conexao.query("select * from usuario where email=?",
-            [email],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    console.log(erro)
-                    return res.status(500).json("Erro ao realizar login!!")
-                }
-                if (resultado.length === 0) {
-                    return res.status(401).json("Email ou senha inválidos!!")
-                }
-                const usuario = resultado[0]    //usuario na posicao 0 do array
+        const modelUsuarios = new ModelUsuario()
+        modelUsuarios.buscarUserporEmail(email).then((resultado) => {
+            if (resultado.length === 0) {
+                return res.status(401).json("Email ou senha inválidos!!")
+            }
+            const usuario = resultado[0]    //usuario na posicao 0 do array
 
-                if (!compareSync(senha, usuario.senha)) {   //comparacao de senha digitada com senha do usuario
-                    return res.status(401).json("Email ou senha inválidos!!")
-                }
-                //A partir daqui a senha e email estao válidos
-                const token = jwt.sign({    //sign: assinatura
-                    //Aqui não são obrigatorias, coisas que quero guardar no body no token
-                    email: usuario.email,
-                    nome: usuario.nome,
-                    id: usuario.id
-                }, process.env.JWT_KEY, {   //2° parametro, assinar
-                    subject: usuario.email, //3°parametro, predefinidos do jwt mas nao sao obrigatorias
-                    expiresIn: 180
-                })
-                delete usuario.senha    //Aqui é pra senha não ficar aparecendo, mesmo que de forma criptografada
+            if (!compareSync(senha, usuario.senha)) {   //comparacao de senha digitada com senha do usuario
+                return res.status(401).json("Email ou senha inválidos!!")
+            }
 
-                return res.json({   //Aqui pra saber quem fez o login
-                    token,
-                    usuario
-                })
+            //A partir daqui a senha e email estao válidos
+            const token = jwt.sign({    //sign: assinatura
+                //Aqui não são obrigatorias, coisas que quero guardar no body no token
+                email: usuario.email,
+                nome: usuario.nome,
+                id: usuario.id
+            }, process.env.JWT_KEY, {   //2° parametro, assinar
+                subject: usuario.email, //3°parametro, predefinidos do jwt mas nao sao obrigatorias
+                expiresIn: 180
             })
+            delete usuario.senha    //Aqui é pra senha não ficar aparecendo, mesmo que de forma criptografada
+
+            return res.json({   //Aqui pra saber quem fez o login
+                token,
+                usuario
+            })
+        })
     }
 
     excluir(req, res) {
+        const modelUsuarios = new ModelUsuario()
         const { id } = req.params
-        conexao.query("delete from usuario where idusuario = ?",
-            [id],
-            (erro, resultado, campos) => {
-                if (erro) {
-                    return res.status(500).json("Erro ao deletar usuário!!")
-                }
-                return res.json({ status: "Usuário deletado com sucesso!!" })
-            })
+        modelUsuarios.excluirUsuario(id).then((resultado) => {
+            return res.status(500).json("Usuário deletado com sucesso!!")
+        }).catch((error) => {
+            return res.json("Erro ao deletar usuário!!")
+        })
     }
 }
 

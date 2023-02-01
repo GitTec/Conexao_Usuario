@@ -1,14 +1,10 @@
-import { conexao } from "../../index.js";
 import { ModelDivida } from "./model.js";
 
 class ControllerDivida {
 
-    constructor() {
-        this.modelDivida = new ModelDivida();
-    }
-
     listar(req, res) {
-        this.modelDivida.listarDividas().then((resultado) => {
+        const modelDivida = new ModelDivida();
+        modelDivida.listarDividas().then((resultado) => {
             if (resultado == 0) {
                 return res.json("Não há dividas cadastradas!!")
             } else {
@@ -19,59 +15,50 @@ class ControllerDivida {
         })
     }
 
-cadastrar(req, res) {
-    const { id_cliente, valor, observacoes } = req.body
-    const dt_atual = new Date()
-    conexao.query("insert into divida (id_cliente, valor, observacoes, data_criacao) values (?,?,?,?)",
-        [id_cliente, valor, observacoes, dt_atual],
-        (erro, resultado, campos) => {
-            if (erro) {
-                console.log(erro)
-                return res.status(500).json("Erro ao cadastrar divida!!")
-            }
-            return res.json({ status: "Divida cadastrada com sucesso!!" })
+    cadastrar(req, res) {
+        const modelDivida = new ModelDivida();
+        const dt_atual = new Date()
+        const { id_cliente, valor, observacoes } = req.body
+        modelDivida.cadastrarDividas(id_cliente, valor, observacoes, dt_atual).then((resultado) => {
+            return res.json("Divida cadastrada com sucesso!!")
+        }).catch((error) => {
+            return res.status(500).json("Erro ao cadastrar divida!!")
         })
-}
+    }
 
-editar(req, res) {
-    const { id } = req.params
-    const { id_cliente, valor, observacoes } = req.body
-    conexao.query("update divida set id_cliente=?, valor=?, observacoes=? where id=?",
-        [id_cliente, valor, observacoes, id],
-        (erro, resultado, campos) => {
-            if (erro) {
-                console.log(erro)
-                return res.status(500).json("Erro ao editar divida!!")
-            }
-            return res.json({ status: "Divida editada com sucesso!!" })
+    editar(req, res) {
+        const modelDivida = new ModelDivida();
+        const { id } = req.params
+        const { id_cliente, valor, observacoes } = req.body
+        modelDivida.editarDividas(id_cliente, valor, observacoes, id).then((resultado) => {
+            return res.json("Divida editada com sucesso!!")
+        }).catch((erro) => {
+            console.log(erro)
+            return res.status(500).json("Erro ao editar divida!!")
         })
-}
+    }
 
-darBaixa(req, res) {
-    const { id } = req.params
-    const dt_pgto = new Date()
-    conexao.query("update divida set data_pagamento=? where id=?",
-        [dt_pgto, id],
-        (erro, resultado, campos) => {
-            if (erro) {
-                console.log(erro)
-                return res.status(500).json("Erro ao dar baixa na divida!!")
-            }
-            return res.json({ status: "Sua divida foi retirada!!" })
+    darBaixa(req, res) {
+        const modelDivida = new ModelDivida();
+        const { id } = req.params
+        const dt_pgto = new Date()
+        modelDivida.baixarDividas(dt_pgto, id).then((resultado) => {
+            return res.json("Sua divida foi quitada!!")
+        }).catch((erro) => {
+            console.log(erro)
+            return res.status(500).json("Erro ao dar baixa na divida!!")
         })
-}
+    }
 
-excluir(req, res) {
-    const { id } = req.params
-    conexao.query("delete from divida where id=?",
-        [id],
-        (erro, resultado, campos) => {
-            if (erro) {
-                console.log(erro)
-                return res.status(500).json("Erro ao deletar divida")
-            }
-            return res.json({ status: "Divida deletada com sucesso!!" })
+    excluir(req, res) {
+        const modelDivida = new ModelDivida();
+        const { id } = req.params
+        modelDivida.excluirDividas(id).then((resultado) => {
+            return res.json("Divida deletada com sucesso!!")
+        }).catch((error) => {
+            console.log(error)
+            return res.status(500).json("Erro ao deletar divida!!")
         })
-}
+    }
 }
 export { ControllerDivida }

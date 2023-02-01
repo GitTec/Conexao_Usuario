@@ -28,7 +28,7 @@ app.use('/dividas', rotasDivida)
 app.use('/clientes', rotasCliente)
 //FIM DAS ROTAS
 
-app.listen(8080, (erro) => {
+app.listen(8000, (erro) => {
     if (erro) {
         console.log("Ocorreu um erro!!")
     } else {
